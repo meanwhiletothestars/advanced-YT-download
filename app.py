@@ -1,53 +1,20 @@
-from tkinter import *
-from tkinter import filedialog
+import customtkinter as ctk
 import download
 import requests
 import sys
 import threading
+from tkinter import filedialog, END, HORIZONTAL
 
 class TextHandler(object):
     def __init__(self, widget):
         self.widget = widget
 
     def write(self, s):
-        self.widget.insert(END, s)
+        self.widget.insert(END, s, "blue")
         self.widget.see(END)
 
     def flush(self):
         pass
-
-window = Tk()
-window.title("YTDL by meanwhile")
-window.geometry("1200x600")
-window.resizable(0, 0)  # делает окно неизменяемым
-
-# Загружаем изображение
-bg_image = PhotoImage(file="back.png")
-bg_label = Label(window, image=bg_image)
-bg_label.place(x=0, y=0, relwidth=1, relheight=1)
-
-option = StringVar()
-option.set("video")
-
-# Создаем фреймы для текстового поля, кнопок и консоли
-text_frame = Frame(window)
-text_frame.pack(side=TOP, padx=10, pady=10)
-
-button_frame = Frame(window)
-button_frame.pack(side=TOP, padx=10, pady=10)
-
-console_frame = Frame(window)
-console_frame.pack(side=BOTTOM, padx=10, pady=10)
-
-# Добавляем полосы прокрутки к текстовому полю
-text_widget = Text(text_frame, width=80, height=20, bg="white", fg="black")  # Уменьшаем размер текстового поля
-scrollbar = Scrollbar(text_frame)
-scrollbar.pack(side=RIGHT, fill=Y)
-text_widget.pack(side=LEFT, fill=Y)
-scrollbar.config(command=text_widget.yview)
-text_widget.config(yscrollcommand=scrollbar.set)
-
-path = None  # инициализируем путь как None
 
 def get_links():
     if not path:
@@ -71,6 +38,10 @@ def get_links():
         else:
             console.insert(END, "Ссылка не является видео или плейлистом, или видео недоступно\n", "red")
             continue
+def on_entry_click(event):
+    if text_widget.get("1.0", "end-1c") == 'https://www.youtube.com/watch?v=\nhttps://www.youtube.com/playlist?list=':
+        text_widget.delete("1.0", "end")
+        text_widget.unbind('<FocusIn>', on_focusin_id)
 
 def choose_folder():
     folder = filedialog.askdirectory()
@@ -81,38 +52,48 @@ def choose_folder():
 def mpconvert():
     download.convert_mp4_to_mp3(path)
 
-# Скругляем кнопки
-button = Button(button_frame, text="Обзор", command=choose_folder, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
-button.pack(side=LEFT, padx=5) 
-
-download_button = Button(button_frame, text="Скачать", command=get_links, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
-download_button.pack(side=LEFT, padx=5)  
-
-download_button = Button(button_frame, text="mp4>>mp3", command=mpconvert, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
-download_button.pack(side=LEFT, padx=5)  
-
-# Добавляем консоль для вывода информации
-console = Text(console_frame, width=100, height=10, bg="lightgray", fg="black")
-scrollbar_console = Scrollbar(console_frame)
-scrollbar_console.pack(side=RIGHT, fill=Y)
-console.pack(side=LEFT, fill=Y)
-scrollbar_console.config(command=console.yview)
-console.config(yscrollcommand=scrollbar_console.set)
-sys.stdout = TextHandler(console)
-
-console.tag_config("red", foreground="red")
-console.tag_config("green", foreground="green")
-console.tag_config("blue", foreground="blue")
-
-console.insert(END, "Пожалуйста, выберите папку для скачивания.\n", "red")
 
 def run_download(link, path, playlist):
-    download_thread = threading.Thread(target=download.run_download, args=(link, path, playlist))
     download_thread.start()
     window.after(100, check_download, download_thread)
 
 def check_download(download_thread):
     if download_thread.is_alive():
         window.after(100, check_download, download_thread)
+
+window = ctk.CTk()
+window.geometry("800x400")
+window.title("YTDL by meanwhile")
+    
+ctk.set_appearance_mode("dark") 
+ctk.set_default_color_theme("green")  
+
+path = ""
+
+text_widget = ctk.CTkTextbox(window, width=600, height=200)
+text_widget.insert("1.0", 'https://www.youtube.com/watch?v=\nhttps://www.youtube.com/playlist?list=')
+on_focusin_id = text_widget.bind('<FocusIn>', on_entry_click)
+text_widget.pack(pady=10)
+
+
+button_frame = ctk.CTkFrame(window)
+button_frame.pack()
+
+browse_button = ctk.CTkButton(button_frame, text="Обзор", command=choose_folder, width=165, height=35)  # увеличьте размер и измените цвет здесь
+browse_button.pack(side="left", padx=3, pady=3)
+
+download_button = ctk.CTkButton(button_frame, text="Скачать", command=get_links, width=250, height=35)  # увеличьте размер и измените цвет здесь
+download_button.pack(side="left", padx=3, pady=3)
+
+convert_button = ctk.CTkButton(button_frame, text="mp4>>mp3", command=mpconvert, width=165, height=35)  # увеличьте размер и измените цвет здесь
+convert_button.pack(side="left", padx=3, pady=3)
+
+console = ctk.CTkTextbox(window, width=600, height=100)
+console.pack(pady=10)
+sys.stdout = TextHandler(console)
+console.tag_config("red", foreground="red")
+console.tag_config("green", foreground="green")
+console.tag_config("blue", foreground="blue")
+console.insert(END, "Пожалуйста, выберите папку для скачивания.\n", "red")
 
 window.mainloop()

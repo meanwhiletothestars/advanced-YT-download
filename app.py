@@ -1,37 +1,3 @@
-<<<<<<< Updated upstream
-from pytube import YouTube, Playlist
-import requests
-from tqdm import tqdm
-from colorama import Fore, Style
-import json
-
-def download(link, path, playlist):
-    r = requests.get(link)
-    if playlist and "list=" in link and "Video unavailable" not in r.text:
-        playlist = Playlist(link)
-        print(Fore.GREEN + f"Количество видео в плейлисте: {len(playlist.video_urls)}" + Style.RESET_ALL)
-        for video in tqdm(playlist.videos, desc="Скачивание видео", colour="blue"):
-            video.streams.first().download(path)
-            tqdm.write(Fore.CYAN + f"Скачано видео: {video.title}" + Style.RESET_ALL)
-    elif not playlist and "watch?v=" in link and "Video unavailable" not in r.text:
-        video = YouTube(link)
-        print(Fore.GREEN + f"Название видео: {video.title}" + Style.RESET_ALL)
-        video.streams.first().download(path)
-        print(Fore.CYAN + f"Скачано видео: {video.title}" + Style.RESET_ALL)
-    else:
-        print(Fore.RED + "Неверное значение в конфиг файле или видео недоступно" + Style.RESET_ALL)
-
-if __name__ == "__main__":
-    with open("config.txt", "r") as f:
-        config = json.load(f)
-        playlist = config["playlist"]
-    with open("download.txt", "r") as f:
-        links = f.readlines()
-    path = input("Введите путь к папке, куда будут скачиваться видео: ")
-    for link in links:
-        download(link, path, playlist)
-    print(Fore.GREEN + "Скачивание завершено!" + Style.RESET_ALL)
-=======
 from tkinter import *
 from tkinter import filedialog
 import download
@@ -112,12 +78,18 @@ def choose_folder():
     global path
     path = folder
 
+def mpconvert():
+    download.convert_mp4_to_mp3(path)
+
 # Скругляем кнопки
 button = Button(button_frame, text="Обзор", command=choose_folder, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
-button.pack(side=LEFT, padx=5)  # Располагаем кнопки рядом друг с другом
+button.pack(side=LEFT, padx=5) 
 
 download_button = Button(button_frame, text="Скачать", command=get_links, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
-download_button.pack(side=LEFT, padx=5)  # Располагаем кнопки рядом друг с другом
+download_button.pack(side=LEFT, padx=5)  
+
+download_button = Button(button_frame, text="mp4>>mp3", command=mpconvert, font=("calibri", 20, "bold"), fg="blue", relief=RIDGE, bd=4)
+download_button.pack(side=LEFT, padx=5)  
 
 # Добавляем консоль для вывода информации
 console = Text(console_frame, width=100, height=10, bg="lightgray", fg="black")
@@ -144,4 +116,3 @@ def check_download(download_thread):
         window.after(100, check_download, download_thread)
 
 window.mainloop()
->>>>>>> Stashed changes

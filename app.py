@@ -54,6 +54,7 @@ def mpconvert():
 
 
 def run_download(link, path, playlist):
+    download_thread = threading.Thread(target=download.run_download, args=(link, path, playlist))
     download_thread.start()
     window.after(100, check_download, download_thread)
 

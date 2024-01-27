@@ -41,5 +41,3 @@ def convert_mp4_to_mp3(path):
             audio_clip = video_clip.audio
             audio_clip.write_audiofile(mp3_path)
             audio_clip.close()
-
-
